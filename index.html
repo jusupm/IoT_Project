@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pametna kuća</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #mqttMessages {
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            max-width: 600px;
+            background-color: #f9f9f9;
+        }
+
+        #mqttMessages p {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        //#temperature {
+        //    display: none; /* Inicijalno skrivamo temperaturu */
+        //}
+    </style>
+</head>
+<body>
+    <h1>Pametna kuća</h1>
+
+    <div id="mqttMessages">
+        <!-- MQTT messages will be displayed here dynamically -->
+    </div>
+
+    <!-- Div za prikaz temperature -->
+    <div id="temperature">
+        <p id="temperatureValue"></p>
+    </div>
+    <div id="password">
+        <p id="passwordValue"></p>
+    </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        // Function to set up WebSocket connection and event handling
+        function setupWebSocket() {
+            // Connect to the WebSocket server
+            var socket = io.connect('http://' + document.domain + ':' + location.port);
+            // Define a function to handle incoming MQTT messages
+            socket.on('mqtt_message', function (msg) {
+                // Log the message to the console
+                console.log('New MQTT Message\nTopic: ' + msg.topic + '\nMessage: ' + msg.message);
+
+                // Update the DOM
+                var messageContainer = document.getElementById('mqttMessages');
+                var messageElement = document.createElement('p');
+                if(msg.topic=="sensors/keypad"){
+                    messageElement.textContent = 'Sifra: '+ msg.message;
+                    var passwordDiv = document.getElementById('password');
+                    passwordDiv.style.display = 'block';
+                    var passwordValue = document.getElementById('passwordValue');
+                    passwordValue.textContent = 'Password: ' + msg.password;
+                    messageContainer.appendChild(messageElement);
+                }else{
+                    messageElement.textContent = 'Temperatura: '+ msg.message;
+                    var temperatureDiv = document.getElementById('temperature');
+                    temperatureDiv.style.display = 'block';
+                    var temperatureValue = document.getElementById('temperatureValue');
+                    temperatureValue.textContent = 'Temperature: ' + msg.temperature;
+                    messageContainer.appendChild(messageElement);
+                }
+                // Append the message to the container
+                //messageContainer.appendChild(messageElement);
+
+                // Provjeri postoji li sifra u poruci
+                //if (msg.sifra) {
+                    // Ako postoji sifra, prikaži temperaturu
+                   // var temperatureDiv = document.getElementById('temperature');
+                   // temperatureDiv.style.display = 'block'; // Prikaži div s temperaturom
+
+                    //var temperatureValue = document.getElementById('temperatureValue');
+                  //  temperatureValue.textContent = 'Temperature: ' + msg.temperature; // Postavi tekst temperaturne vrijednosti
+
+                //}
+            });
+
+            // Function to handle WebSocket connection
+            socket.on('connect', function () {
+                console.log('Connected to WebSocket server');
+            });
+        }
+
+        // Call the setupWebSocket function after the document has loaded
+        document.addEventListener('DOMContentLoaded', setupWebSocket);
+    </script>
+</body>
+</html>
